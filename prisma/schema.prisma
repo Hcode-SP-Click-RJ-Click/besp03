@@ -12,4 +12,22 @@ model categories {
   name      String   @db.VarChar(50)
   createdAt DateTime @default(now()) @db.Timestamp(0)
   updatedAt DateTime @default(now()) @db.Timestamp(0)
+  places    places[]
+}
+
+model places {
+  id         Int        @id @default(autoincrement())
+  categoryId Int
+  name       String     @db.VarChar(50)
+  address    String     @db.VarChar(50)
+  number     String     @db.VarChar(50)
+  complement String?    @db.VarChar(50)
+  city       String     @db.VarChar(50)
+  state      String     @db.VarChar(50)
+  country    String     @db.VarChar(50)
+  createdAt  DateTime   @default(now()) @db.Timestamp(0)
+  updatedAt  DateTime   @default(now()) @db.Timestamp(0)
+  categories categories @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "places_ibfk_1")
+
+  @@index([categoryId], map: "categoryId")
 }

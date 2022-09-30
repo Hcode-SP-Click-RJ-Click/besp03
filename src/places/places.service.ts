@@ -1,12 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
 
 @Injectable()
 export class PlacesService {
 
+    constructor(private database: PrismaService) {}
+
     getPlaces() {
-        return "Rota que lista os lugares";
+        return this.database.places.findMany();
     }
 
     getById(id: number) {
@@ -15,14 +18,11 @@ export class PlacesService {
 
     save(data: CreatePlaceDto) {
 
-        if (!data.city) {
-            throw new BadRequestException("Informe a cidade.");
-        }
+        data.categoryId = Number(data.categoryId);
 
-        return {
-            message: "Criando um novo lugar",
+        return this.database.places.create({
             data,
-        };
+        });
 
     }
 
