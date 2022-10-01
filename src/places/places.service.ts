@@ -1,4 +1,5 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { CategoriesService } from 'src/categories/categories.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
@@ -6,19 +7,49 @@ import { UpdatePlaceDto } from './dto/update-place.dto';
 @Injectable()
 export class PlacesService {
 
-    constructor(private database: PrismaService) {}
+    constructor(
+        private database: PrismaService,
+        private categoriesService: CategoriesService,
+    ) {}
 
     getPlaces() {
-        return this.database.places.findMany();
+        return this.database.places.findMany({
+            include: {
+                categories: true,
+            },
+        });
     }
 
-    getById(id: number) {
-        return "Lugar com o ID: " + id;
+    async getById(id: number) {
+
+        if (isNaN(Number(id))) {
+            throw new BadRequestException('ID do lugar inválido.');
+        }
+
+        id = Number(id);
+        
+        const place = await this.database.places.findUnique({
+            include: {
+                categories: true,
+            },
+            where: {
+                id,
+            },
+        });
+
+        if (!place) {
+            throw new NotFoundException('Lugar não encontrado');
+        }
+
+        return place;
+
     }
 
-    save(data: CreatePlaceDto) {
+    async save(data: CreatePlaceDto) {
 
         data.categoryId = Number(data.categoryId);
+
+        await this.categoriesService.findOne(data.categoryId);
 
         return this.database.places.create({
             data,
@@ -26,20 +57,34 @@ export class PlacesService {
 
     }
 
-    update(placeId: number, data: UpdatePlaceDto) {
+    async update(placeId: number, data: UpdatePlaceDto) {
 
-        return {
-            message: `Atualizando o lugar com ID ${placeId}`,
+        await this.getById(placeId);
+
+        if (data.categoryId) {
+            await this.categoriesService.findOne(data.categoryId);
+
+            data.categoryId = Number(data.categoryId);
+        }
+
+        return this.database.places.update({
             data,
-        };
+            where: {
+                id: Number(placeId),
+            },
+        });
 
     }
 
-    remove(placeId: number) {
+    async remove(placeId: number) {
 
-        return {
-            message: `Excluindo o lugar com ID ${placeId}`,
-        };
+        await this.getById(placeId);
+
+        return this.database.places.delete({
+            where: {
+                id: +placeId,
+            },
+        });
 
     }
 

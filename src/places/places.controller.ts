@@ -18,7 +18,7 @@ export class PlacesController {
     // http://localhost:3000/places/45
     @Get(':id')
     showPlace(@Param('id') placeId: number) {
-        return this.service.getById(placeId);
+        return this.service.getById(Number(placeId));
     }
 
     // http://localhost:3000/places - POST

@@ -31,3 +31,18 @@ model places {
 
   @@index([categoryId], map: "categoryId")
 }
+
+model migrations {
+  id        Int    @id @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar(255)
+}
+
+model users {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(64)
+  email     String   @unique(map: "UQ_97672ac88f789774dd47f7c8be3") @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamp(0)
+  updatedAt DateTime @default(now()) @db.Timestamp(0)
+}
